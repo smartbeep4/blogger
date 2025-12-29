@@ -3,7 +3,7 @@ services:
     name: interactive-blog
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn run:app
+    startCommand: gunicorn your_application.wsgi:application
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -13,3 +13,5 @@ services:
         sync: false
       - key: FLASK_ENV
         value: production
+      - key: PYTHON_VERSION
+        value: 3.12.7

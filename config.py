@@ -8,8 +8,19 @@ load_dotenv()
 class Config:
     """Base configuration class."""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://localhost/interactive_blog'
+    
+    # Database URI - use environment variable or fallback
+    # In production, DATABASE_URL must be set
+    _db_url = os.environ.get('DATABASE_URL')
+    if _db_url and _db_url.startswith('postgres://'):
+        # Render sometimes provides postgres:// instead of postgresql://
+        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+    SQLALCHEMY_DATABASE_URI = _db_url or 'postgresql://localhost/interactive_blog'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,  # Verify connections before using
+        'pool_recycle': 300,    # Recycle connections after 5 minutes
+    }
 
     # Gemini API Key
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')

@@ -203,9 +203,13 @@ The dashboard provides:
    - Connect your GitHub repository
    - Configure service:
      - **Name**: `interactive-blog`
-     - **Runtime**: `Python 3`
+     - **Runtime**: `Python 3` (Render will use `runtime.txt` which specifies Python 3.12.7)
      - **Build Command**: `pip install -r requirements.txt`
-     - **Start Command**: `gunicorn run:app` ⚠️ **IMPORTANT**: Make sure this is set explicitly in Render's dashboard, as it may override the Procfile
+     - **Start Command**: `gunicorn your_application.wsgi:application` or `gunicorn run:app`
+     - ⚠️ **IMPORTANT**: 
+       - If you see Python 3.13 in the build logs, Render isn't reading `runtime.txt` correctly
+       - Go to Settings → Environment and ensure Python version is set to 3.12.7
+       - Or manually set `PYTHON_VERSION=3.12.7` in environment variables
 
 2. **Set Environment Variables** in Render:
    ```
