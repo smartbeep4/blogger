@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Interactive Blog{% endblock %}</title>
+    <meta name="description" content="{% block description %}A modern interactive blog with quizzes, charts, and embedded media{% endblock %}">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.output.css') }}">
+
+    {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900 theme-light">
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-indigo-600 text-white px-4 py-2 rounded-md z-50">
+        Skip to main content
+    </a>
+
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-2">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Interactive Blog</h3>
+                    <p class="text-gray-600 mb-4">
+                        A modern blogging platform with interactive elements including quizzes, charts, and embedded media.
+                        Built with Flask and deployed on Render.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fab fa-twitter text-lg"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fab fa-github text-lg"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fab fa-linkedin text-lg"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('main.index') }}" class="text-gray-600 hover:text-gray-900 transition-colors">Home</a></li>
+                        {% if current_user.is_authenticated %}
+                            <li><a href="{{ url_for('main.dashboard') }}" class="text-gray-600 hover:text-gray-900 transition-colors">Dashboard</a></li>
+                            <li><a href="{{ url_for('main.editor') }}" class="text-gray-600 hover:text-gray-900 transition-colors">New Post</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('main.login') }}" class="text-gray-600 hover:text-gray-900 transition-colors">Login</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Categories</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('main.category', category='Technology') }}" class="text-gray-600 hover:text-gray-900 transition-colors">Technology</a></li>
+                        <li><a href="{{ url_for('main.category', category='Tutorial') }}" class="text-gray-600 hover:text-gray-900 transition-colors">Tutorial</a></li>
+                        <li><a href="{{ url_for('main.category', category='Opinion') }}" class="text-gray-600 hover:text-gray-900 transition-colors">Opinion</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center">
+                <p class="text-gray-600 text-sm">
+                    © 2024 Interactive Blog. Built with Flask, Tailwind CSS, and modern web technologies.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global JavaScript -->
+    <script>
+        // Theme management
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                const html = document.documentElement;
+                const savedTheme = localStorage.getItem('theme') || 'light';
+
+                // Apply saved theme
+                html.classList.toggle('theme-dark', savedTheme === 'dark');
+                html.classList.toggle('theme-gray', savedTheme === 'gray');
+                updateThemeIcon(savedTheme);
+
+                themeToggle.addEventListener('click', function() {
+                    const currentTheme = localStorage.getItem('theme') || 'light';
+                    let newTheme;
+
+                    if (currentTheme === 'light') {
+                        newTheme = 'dark';
+                    } else if (currentTheme === 'dark') {
+                        newTheme = 'gray';
+                    } else {
+                        newTheme = 'light';
+                    }
+
+                    localStorage.setItem('theme', newTheme);
+                    html.classList.toggle('theme-light', newTheme === 'light');
+                    html.classList.toggle('theme-dark', newTheme === 'dark');
+                    html.classList.toggle('theme-gray', newTheme === 'gray');
+                    updateThemeIcon(newTheme);
+
+                    // Dispatch custom event for components that need to react to theme changes
+                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+                });
+
+                function updateThemeIcon(theme) {
+                    const icon = themeToggle.querySelector('i');
+                    if (icon) {
+                        if (theme === 'dark') {
+                            icon.className = 'fas fa-sun';
+                        } else if (theme === 'gray') {
+                            icon.className = 'fas fa-adjust';
+                        } else {
+                            icon.className = 'fas fa-moon';
+                        }
+                    }
+                }
+            }
+
+            // Animate elements on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fade-in');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // Observe elements with animation classes
+            document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Handle flash messages auto-dismiss
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(message => {
+                setTimeout(() => {
+                    message.style.opacity = '0';
+                    setTimeout(() => message.remove(), 300);
+                }, 5000);
+            });
+        });
+
+        // Utility functions
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function throttle(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            }
+        }
+
+        // Make utilities globally available
+        window.BlogUtils = {
+            debounce,
+            throttle
+        };
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

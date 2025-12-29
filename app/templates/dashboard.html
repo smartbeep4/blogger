@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Interactive Blog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 theme-light">
+    <!-- Navigation -->
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <h1 class="text-xl font-bold text-gray-900">Dashboard</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" class="p-2 rounded-md text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    <a href="{{ url_for('main.editor') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+                        New Post
+                    </a>
+                    <a href="{{ url_for('main.index') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
+                        View Blog
+                    </a>
+                    {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('main.admin_users') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
+                            Admin
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.logout') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Welcome Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Welcome back, {{ current_user.username }}!</h1>
+            <p class="mt-2 text-gray-600">Here's an overview of your blog's performance and content.</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                            <i class="fas fa-eye text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Views</dt>
+                        <dd class="text-2xl font-semibold text-gray-900">{{ total_views }}</dd>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                            <i class="fas fa-file-alt text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Posts</dt>
+                        <dd class="text-2xl font-semibold text-gray-900">{{ total_posts }}</dd>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                            <i class="fas fa-check-circle text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <dt class="text-sm font-medium text-gray-500 truncate">Published</dt>
+                        <dd class="text-2xl font-semibold text-gray-900">{{ published_posts }}</dd>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                            <i class="fas fa-edit text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <dt class="text-sm font-medium text-gray-500 truncate">Drafts</dt>
+                        <dd class="text-2xl font-semibold text-gray-900">{{ total_posts - published_posts }}</dd>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Views Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Post Views Over Time</h3>
+                <div class="h-64">
+                    <canvas id="viewsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Quiz Performance Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Quiz Performance</h3>
+                <div class="h-64">
+                    <canvas id="quizChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Posts -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-8">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Your Posts</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage and track your blog content</p>
+            </div>
+            <ul class="divide-y divide-gray-200">
+                {% for post in posts %}
+                    <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    {% if post.status == 'published' %}
+                                        <div class="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
+                                            <i class="fas fa-check text-white text-sm"></i>
+                                        </div>
+                                    {% else %}
+                                        <div class="h-10 w-10 rounded-full bg-yellow-500 flex items-center justify-center">
+                                            <i class="fas fa-edit text-white text-sm"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        <a href="{% if post.status == 'published' %}{{ url_for('main.post', slug=post.slug) }}{% else %}#{% endif %}" class="hover:text-indigo-600">
+                                            {{ post.title }}
+                                        </a>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        Created {{ post.created_at.strftime('%b %d, %Y') }} •
+                                        {{ post.views }} views •
+                                        {% if post.categories %}
+                                            Categories: {{ post.categories|join(', ') }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                {% if post.status == 'published' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Published
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Draft
+                                    </span>
+                                {% endif %}
+                                <a href="{{ url_for('main.editor', post_id=post.id) }}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                    Edit
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% if not posts %}
+                <div class="px-4 py-8 text-center">
+                    <div class="text-gray-400 mb-4">
+                        <i class="fas fa-file-alt text-4xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
+                    <p class="text-gray-600 mb-4">Create your first post to get started!</p>
+                    <a href="{{ url_for('main.editor') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <i class="fas fa-plus mr-2"></i>
+                        Create Post
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Common tasks and shortcuts</p>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <a href="{{ url_for('main.editor') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-plus-circle text-indigo-600 text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-900">New Post</p>
+                            <p class="text-sm text-gray-500">Create a new blog post</p>
+                        </div>
+                    </a>
+
+                    <a href="{{ url_for('main.index') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-eye text-green-600 text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-900">View Blog</p>
+                            <p class="text-sm text-gray-500">See your published posts</p>
+                        </div>
+                    </a>
+
+                    {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('main.admin_users') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-users text-purple-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">User Management</p>
+                                <p class="text-sm text-gray-500">Manage blog users</p>
+                            </div>
+                        </a>
+                    {% else %}
+                        <div class="flex items-center p-4 border border-gray-200 rounded-lg opacity-50 cursor-not-allowed">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-users text-gray-400 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">User Management</p>
+                                <p class="text-sm text-gray-400">Admin only</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <a href="{{ url_for('main.admin_logins') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-bar text-blue-600 text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-900">Analytics</p>
+                            <p class="text-sm text-gray-500">View login logs</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle functionality
+            const themeToggle = document.getElementById('theme-toggle');
+            const html = document.documentElement;
+
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            html.classList.toggle('theme-dark', savedTheme === 'dark');
+            html.classList.toggle('theme-gray', savedTheme === 'gray');
+            updateThemeIcon(savedTheme);
+
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = localStorage.getItem('theme') || 'light';
+                let newTheme;
+
+                if (currentTheme === 'light') {
+                    newTheme = 'dark';
+                } else if (currentTheme === 'dark') {
+                    newTheme = 'gray';
+                } else {
+                    newTheme = 'light';
+                }
+
+                localStorage.setItem('theme', newTheme);
+                html.classList.toggle('theme-light', newTheme === 'light');
+                html.classList.toggle('theme-dark', newTheme === 'dark');
+                html.classList.toggle('theme-gray', newTheme === 'gray');
+                updateThemeIcon(newTheme);
+            });
+
+            function updateThemeIcon(theme) {
+                const icon = themeToggle.querySelector('i');
+                if (theme === 'dark') {
+                    icon.className = 'fas fa-sun';
+                } else if (theme === 'gray') {
+                    icon.className = 'fas fa-adjust';
+                } else {
+                    icon.className = 'fas fa-moon';
+                }
+            }
+
+            // Initialize Charts
+            initializeCharts();
+        });
+
+        async function initializeCharts() {
+            try {
+                // Fetch analytics data
+                const response = await fetch('/api/dashboard/analytics');
+                const data = await response.json();
+
+                // Views Chart
+                const viewsCtx = document.getElementById('viewsChart').getContext('2d');
+                new Chart(viewsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: data.views.labels,
+                        datasets: [{
+                            label: 'Post Views',
+                            data: data.views.data,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Quiz Chart
+                const quizCtx = document.getElementById('quizChart').getContext('2d');
+                new Chart(quizCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.quiz.labels,
+                        datasets: [{
+                            label: 'Attempts',
+                            data: data.quiz.attempts,
+                            backgroundColor: 'rgba(239, 68, 68, 0.8)'
+                        }, {
+                            label: 'Successes',
+                            data: data.quiz.successes,
+                            backgroundColor: 'rgba(34, 197, 94, 0.8)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load analytics data:', error);
+            }
+        }
+    </script>
+</body>
+</html>
