@@ -205,7 +205,7 @@ The dashboard provides:
      - **Name**: `interactive-blog`
      - **Runtime**: `Python 3`
      - **Build Command**: `pip install -r requirements.txt`
-     - **Start Command**: `gunicorn run:app`
+     - **Start Command**: `gunicorn run:app` ⚠️ **IMPORTANT**: Make sure this is set explicitly in Render's dashboard, as it may override the Procfile
 
 2. **Set Environment Variables** in Render:
    ```
@@ -216,6 +216,25 @@ The dashboard provides:
    ```
 
 3. **Deploy** the application
+
+**⚠️ Troubleshooting Deployment Issues:**
+
+If you see `ModuleNotFoundError: No module named 'your_application'`:
+
+1. **Check Render Dashboard Settings**:
+   - Go to your Web Service → Settings
+   - Scroll to "Start Command"
+   - Ensure it's set to: `gunicorn run:app`
+   - If it shows `gunicorn your_application.wsgi`, change it to `gunicorn run:app`
+   - Save and redeploy
+
+2. **Verify Procfile exists** in your repository root with:
+   ```
+   web: gunicorn run:app
+   ```
+
+3. **Alternative**: If Procfile isn't being detected, you can also use:
+   - Start Command: `gunicorn wsgi:app` (using the wsgi.py file)
 
 ### 3. Database Setup
 
