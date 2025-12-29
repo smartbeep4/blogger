@@ -34,9 +34,16 @@ def create_app(config_name='default'):
     # Register error handlers
     register_error_handlers(app)
 
-    # Create database tables (for development)
-    with app.app_context():
-        db.create_all()
+    # Create database tables (for development only, not in production)
+    # In production, use migrations: flask db upgrade
+    if app.config.get('DEBUG', False):
+        with app.app_context():
+            try:
+                db.create_all()
+            except Exception as e:
+                # Log but don't fail if database isn't available during app init
+                print(f"Warning: Could not create database tables: {e}")
+                print("Run 'flask db upgrade' to set up the database.")
 
     return app
 

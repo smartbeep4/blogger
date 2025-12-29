@@ -219,6 +219,11 @@ The dashboard provides:
 
 **⚠️ Troubleshooting Deployment Issues:**
 
+**Python Version Issue**: If you see `ImportError` with `psycopg2` and `undefined symbol: _PyInterpreterState_Get`:
+- This happens with Python 3.13. The `runtime.txt` file specifies Python 3.12.7 for compatibility.
+- Make sure Render is using the Python version from `runtime.txt`
+- If issues persist, explicitly set Python version in Render dashboard to 3.12
+
 If you see `ModuleNotFoundError: No module named 'your_application'`:
 
 **Solution 1 (Recommended)**: The repository now includes a `your_application/wsgi.py` module that works with Render's default command. This should work automatically.
