@@ -15,12 +15,13 @@ A modern, interactive blog platform built with Flask featuring rich text editing
 
 ## Tech Stack
 
-- **Backend**: Flask 3.0, SQLAlchemy, PostgreSQL
+- **Backend**: Flask 3.0, SQLAlchemy, PostgreSQL (with psycopg3 driver)
 - **Frontend**: Jinja2 templates, Tailwind CSS, Alpine.js, Quill.js, Chart.js, PDF.js
 - **Authentication**: Flask-Login with Werkzeug password hashing
 - **Security**: Flask-Limiter, Bleach sanitization
 - **AI**: Google Gemini API for content categorization
 - **Deployment**: Render (free tier compatible)
+- **Python**: 3.13+ (modern async support, performance improvements)
 
 ## Quick Start
 
@@ -223,10 +224,9 @@ The dashboard provides:
 
 **⚠️ Troubleshooting Deployment Issues:**
 
-**Python Version Issue**: If you see `ImportError` with `psycopg2` and `undefined symbol: _PyInterpreterState_Get`:
-- This happens with Python 3.13. The `runtime.txt` file specifies Python 3.12.7 for compatibility.
-- Make sure Render is using the Python version from `runtime.txt`
-- If issues persist, explicitly set Python version in Render dashboard to 3.12
+**Database Driver Issue**: If you see `ImportError` with `psycopg2`:
+- The app uses `psycopg[binary]` (psycopg3) which is compatible with Python 3.13+
+- Make sure your environment has the correct database connection string
 
 If you see `ModuleNotFoundError: No module named 'your_application'`:
 

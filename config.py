@@ -8,14 +8,18 @@ load_dotenv()
 class Config:
     """Base configuration class."""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-    
+
     # Database URI - use environment variable or fallback
     # In production, DATABASE_URL must be set
     _db_url = os.environ.get('DATABASE_URL')
-    if _db_url and _db_url.startswith('postgres://'):
+    if _db_url:
         # Render sometimes provides postgres:// instead of postgresql://
         _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
-    SQLALCHEMY_DATABASE_URI = _db_url or 'postgresql://localhost/interactive_blog'
+        # Ensure we use the psycopg3 driver
+        if 'postgresql://' in _db_url and '+psycopg' not in _db_url:
+            _db_url = _db_url.replace('postgresql://', 'postgresql+psycopg://', 1)
+
+    SQLALCHEMY_DATABASE_URI = _db_url or 'postgresql+psycopg://localhost/interactive_blog'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,  # Verify connections before using
