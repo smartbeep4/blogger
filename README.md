@@ -221,11 +221,13 @@ The dashboard provides:
 
 If you see `ModuleNotFoundError: No module named 'your_application'`:
 
+**Solution 1 (Recommended)**: The repository now includes a `your_application/wsgi.py` module that works with Render's default command. This should work automatically.
+
+**Solution 2**: If you want to use the Procfile instead:
 1. **Check Render Dashboard Settings**:
    - Go to your Web Service → Settings
    - Scroll to "Start Command"
    - Ensure it's set to: `gunicorn run:app`
-   - If it shows `gunicorn your_application.wsgi`, change it to `gunicorn run:app`
    - Save and redeploy
 
 2. **Verify Procfile exists** in your repository root with:
@@ -233,8 +235,9 @@ If you see `ModuleNotFoundError: No module named 'your_application'`:
    web: gunicorn run:app
    ```
 
-3. **Alternative**: If Procfile isn't being detected, you can also use:
-   - Start Command: `gunicorn wsgi:app` (using the wsgi.py file)
+**Solution 3**: Alternative start commands:
+   - `gunicorn wsgi:app` (using the wsgi.py file)
+   - `gunicorn your_application.wsgi:application` (using the workaround module)
 
 ### 3. Database Setup
 
