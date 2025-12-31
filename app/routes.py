@@ -136,9 +136,12 @@ def post(slug):
 def category(category):
     """Posts by category."""
     page = request.args.get('page', 1, type=int)
+    # Use PostgreSQL JSON containment operator @>
+    from sqlalchemy import cast
+    from sqlalchemy.dialects.postgresql import JSONB
     posts = Post.query.filter(
         Post.status == 'published',
-        Post.categories.contains([category])
+        cast(Post.categories, JSONB).op('@>')(f'["{category}"]')
     ).order_by(Post.published_at.desc())\
      .paginate(page=page, per_page=10, error_out=False)
 
@@ -149,9 +152,12 @@ def category(category):
 def tag(tag):
     """Posts by tag."""
     page = request.args.get('page', 1, type=int)
+    # Use PostgreSQL JSON containment operator @>
+    from sqlalchemy import cast
+    from sqlalchemy.dialects.postgresql import JSONB
     posts = Post.query.filter(
         Post.status == 'published',
-        Post.tags.contains([tag])
+        cast(Post.tags, JSONB).op('@>')(f'["{tag}"]')
     ).order_by(Post.published_at.desc())\
      .paginate(page=page, per_page=10, error_out=False)
 
